@@ -531,6 +531,33 @@ ${transcript}
     stageDescription
   };
 
+  // Supabaseに分析結果を保存
+  if (supabase) {
+    try {
+      const { sessionId } = req.body;
+      await supabase.from('transcript_analyses').insert({
+        session_id:          sessionId || null,
+        company_name:        company.name   || null,
+        industry:            company.industry || null,
+        total_score:         totalScore,
+        ai_potential:        result.aiPotential || 0,
+        stage,
+        stage_description:   stageDescription,
+        scores:              result.scores              || {},
+        dimension_details:   result.dimensionDetails   || {},
+        department_analysis: result.departmentAnalysis || {},
+        key_findings:        result.keyFindings         || [],
+        outputs:             result.outputs             || {},
+        roi_simulation:      result.roiSimulation       || {},
+        next_steps:          result.nextSteps            || [],
+        transcript_chars:    transcript.length
+      });
+    } catch (dbErr) {
+      // DB保存失敗はログだけ（レスポンスには影響しない）
+      console.warn('[analyze-transcript] DB save failed:', dbErr.message);
+    }
+  }
+
   return res.status(200).json(result);
 });
 
