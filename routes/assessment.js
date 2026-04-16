@@ -4,6 +4,7 @@ const express = require('express');
 const router = express.Router();
 const fs = require('fs');
 const path = require('path');
+const supabase = require('../lib/supabase');
 
 const DATA_DIR = path.join(__dirname, '..', 'data');
 
@@ -158,9 +159,25 @@ router.get('/questions', (req, res) => {
   res.json({ questions, total: questions.length, categories });
 });
 
+// ---------- POST /api/sessions ----------
+// セッション（企業情報）をDBに保存してsession_idを返す
+router.post('/sessions', async (req, res) => {
+  const { companyName, industry, companySize, role, budget } = req.body;
+  if (!supabase) return res.json({ sessionId: null, note: 'DB未接続' });
+
+  const { data, error } = await supabase
+    .from('sessions')
+    .insert({ company_name: companyName, industry, company_size: companySize, role, budget })
+    .select('id')
+    .single();
+
+  if (error) return res.status(500).json({ error: error.message });
+  res.json({ sessionId: data.id });
+});
+
 // ---------- POST /api/assess ----------
-router.post('/assess', (req, res) => {
-  const { answers, companyInfo } = req.body;
+router.post('/assess', async (req, res) => {
+  const { answers, companyInfo, sessionId } = req.body;
 
   if (!answers || !Array.isArray(answers) || answers.length === 0) {
     return res.status(400).json({ error: '回答データが必要です', code: 'MISSING_ANSWERS' });
@@ -173,7 +190,7 @@ router.post('/assess', (req, res) => {
   const levelObj = getLevel(totalScore);
   const { strengths, weaknesses, priorityActions } = buildFeedback(dimensionScores, levelObj);
 
-  res.json({
+  const result = {
     totalScore,
     level: levelObj.level,
     levelName: levelObj.name,
@@ -183,7 +200,31 @@ router.post('/assess', (req, res) => {
     weaknesses: weaknesses.length ? weaknesses : ['特定の弱点は見つかりませんでした'],
     priorityActions,
     companyProfile: companyInfo || {}
-  });
+  };
+
+  // Supabaseに保存（sessionIdがあれば）
+  if (supabase && sessionId) {
+    await supabase.from('assessment_results').insert({
+      session_id:       sessionId,
+      total_score:      totalScore,
+      level:            levelObj.level,
+      level_name:       levelObj.name,
+      dimension_scores: dimensionScores,
+      strengths:        result.strengths,
+      weaknesses:       result.weaknesses,
+      priority_actions: priorityActions
+    });
+
+    // 回答もまとめて保存
+    const answerRows = answers.map(a => ({
+      session_id:  sessionId,
+      question_id: a.questionId,
+      value:       { v: a.value }
+    }));
+    await supabase.from('answers').insert(answerRows);
+  }
+
+  res.json(result);
 });
 
 module.exports = router;

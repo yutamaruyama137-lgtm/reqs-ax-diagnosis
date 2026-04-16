@@ -3,6 +3,7 @@
 const express = require('express');
 const router = express.Router();
 const Anthropic = require('@anthropic-ai/sdk');
+const supabase = require('../lib/supabase');
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 const MODEL = 'claude-sonnet-4-6';
@@ -114,9 +115,9 @@ ${weaknesses.map(w => `- ${w}`).join('\n') || '- データ収集中'}
 });
 
 // ---------- POST /api/ai/chat ----------
-// チャット（会話履歴付き）
+// チャット（会話履歴付き）+ Supabase保存
 router.post('/chat', async (req, res) => {
-  const { messages, assessmentResult, companyInfo } = req.body;
+  const { messages, assessmentResult, companyInfo, sessionId } = req.body;
 
   if (!messages || !Array.isArray(messages) || messages.length === 0) {
     return res.status(400).json({ error: 'メッセージが必要です' });
@@ -148,14 +149,40 @@ router.post('/chat', async (req, res) => {
     .filter(m => m.role === 'user' || m.role === 'assistant')
     .map(m => ({ role: m.role, content: m.content }));
 
-  const stream = await client.messages.stream({
+  // 最後のユーザーメッセージをDBに保存
+  const lastUser = apiMessages.filter(m => m.role === 'user').pop();
+  if (supabase && sessionId && lastUser) {
+    await supabase.from('chat_histories').insert({ session_id: sessionId, role: 'user', content: lastUser.content });
+  }
+
+  const stream = client.messages.stream({
     model: MODEL,
     max_tokens: 1000,
     system: contextSystem,
     messages: apiMessages
   });
 
-  return streamResponse(res, stream);
+  // アシスタントの返答も保存
+  let fullReply = '';
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  try {
+    for await (const chunk of stream) {
+      if (chunk.type === 'content_block_delta' && chunk.delta?.type === 'text_delta') {
+        fullReply += chunk.delta.text;
+        res.write(`data: ${JSON.stringify({ text: chunk.delta.text })}\n\n`);
+      }
+    }
+    res.write('data: [DONE]\n\n');
+    if (supabase && sessionId && fullReply) {
+      await supabase.from('chat_histories').insert({ session_id: sessionId, role: 'assistant', content: fullReply });
+    }
+  } catch (err) {
+    res.write(`data: ${JSON.stringify({ error: err.message })}\n\n`);
+  }
+  res.end();
 });
 
 // ---------- POST /api/ai/recommend-detail ----------
