@@ -549,6 +549,19 @@
             </div>
           </div>
 
+          <!-- Claude AI Analysis -->
+          <div class="ai-analysis-card" id="aiAnalysisCard">
+            <div class="ai-analysis-header">
+              <div class="ai-badge"><i class="fas fa-robot"></i> Claude AI</div>
+              <h3 class="card-title">AIによる詳細分析</h3>
+              <p class="card-desc">診断結果をClaudeが深掘り分析します</p>
+            </div>
+            <button class="btn-ai" id="btnAiAnalyze" onclick="runAiAnalysis()">
+              <i class="fas fa-sparkles"></i> AI詳細分析を開始
+            </button>
+            <div class="ai-stream-output" id="aiAnalysisOutput" style="display:none"></div>
+          </div>
+
           <div class="section-next-btn">
             <button class="btn-primary btn-lg" onclick="goToStep(4)" aria-label="おすすめAIツールを見る">
               おすすめAIツールを見る <i class="fas fa-arrow-right"></i>
@@ -709,6 +722,55 @@
 
   <!-- Toast Notification -->
   <div class="toast" id="toast" role="alert" aria-live="polite"></div>
+
+  <!-- ======== AI CHAT WIDGET ======== -->
+  <div class="chat-widget" id="chatWidget" aria-label="AIチャット">
+    <div class="chat-header" onclick="toggleChat()">
+      <div class="chat-header-left">
+        <div class="chat-avatar"><i class="fas fa-robot"></i></div>
+        <div>
+          <div class="chat-title">AX AIアドバイザー</div>
+          <div class="chat-subtitle">Powered by Claude</div>
+        </div>
+      </div>
+      <button class="chat-toggle-btn" id="chatToggleBtn" aria-label="チャットを開閉">
+        <i class="fas fa-chevron-up" id="chatChevron"></i>
+      </button>
+    </div>
+    <div class="chat-body" id="chatBody">
+      <div class="chat-messages" id="chatMessages">
+        <div class="chat-message assistant">
+          <div class="message-bubble">
+            こんにちは！AX（AI Transformation）に関するご質問はなんでもどうぞ。<br>
+            診断結果についての質問や、具体的な導入方法なども承ります 🤖
+          </div>
+        </div>
+      </div>
+      <div class="chat-input-area">
+        <textarea
+          id="chatInput"
+          class="chat-input"
+          placeholder="質問を入力してください..."
+          rows="2"
+          aria-label="チャット入力"
+          onkeydown="handleChatKeydown(event)"
+        ></textarea>
+        <button class="chat-send-btn" onclick="sendChat()" aria-label="送信" id="chatSendBtn">
+          <i class="fas fa-paper-plane"></i>
+        </button>
+      </div>
+      <div class="chat-suggestions" id="chatSuggestions">
+        <button class="chat-suggestion" onclick="useSuggestion('AXスコアを上げるための最優先アクションを教えてください')">優先アクションは？</button>
+        <button class="chat-suggestion" onclick="useSuggestion('ChatGPTを業務に導入する具体的な手順を教えてください')">ChatGPT導入方法</button>
+        <button class="chat-suggestion" onclick="useSuggestion('AIツール導入の予算感を教えてください')">予算感は？</button>
+        <button class="chat-suggestion" onclick="useSuggestion('REQSのサービスで何をサポートしてもらえますか？')">REQSのサービスは？</button>
+      </div>
+    </div>
+  </div>
+  <button class="chat-fab" id="chatFab" onclick="toggleChat()" aria-label="AIチャットを開く">
+    <i class="fas fa-robot"></i>
+    <span class="chat-fab-badge" id="chatFabBadge">AI</span>
+  </button>
 
   <script src="app.js"></script>
 </body>

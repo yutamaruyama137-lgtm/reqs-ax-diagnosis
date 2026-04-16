@@ -1,5 +1,7 @@
 'use strict';
 
+require('dotenv').config();
+
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
@@ -7,6 +9,7 @@ const path = require('path');
 
 const assessmentRouter = require('./routes/assessment');
 const toolsRouter = require('./routes/tools');
+const aiRouter = require('./routes/ai');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -27,6 +30,7 @@ app.get('/api/health', (req, res) => {
 // ---------- ルーティング ----------
 app.use('/api', assessmentRouter);
 app.use('/api', toolsRouter);
+app.use('/api/ai', aiRouter);
 
 // ---------- SPA フォールバック ----------
 app.get('/', (req, res) => {
@@ -62,6 +66,10 @@ app.listen(PORT, () => {
   console.log(`  GET  /api/tools`);
   console.log(`  POST /api/recommend`);
   console.log(`  POST /api/roadmap`);
+  console.log(`  POST /api/ai/analyze    ← Claude: 診断結果の詳細分析（ストリーミング）`);
+  console.log(`  POST /api/ai/chat       ← Claude: チャット（会話履歴付き）`);
+  console.log(`  POST /api/ai/recommend-detail ← Claude: ツール選定の詳細説明`);
+  console.log(`  POST /api/ai/roadmap-detail   ← Claude: ロードマップ深掘り`);
 });
 
 module.exports = app;

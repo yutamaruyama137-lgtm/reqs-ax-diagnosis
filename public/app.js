@@ -1096,3 +1096,217 @@ function init() {
 }
 
 document.addEventListener('DOMContentLoaded', init);
+
+/* ============================================================
+   CLAUDE AI INTEGRATION
+   ============================================================ */
+
+// --- ストリーミングレスポンスをSSEで受け取る共通ユーティリティ ---
+async function streamFromApi(endpoint, body, onChunk, onDone) {
+  const res = await fetch(endpoint, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  });
+  if (!res.ok) throw new Error(`API error: ${res.status}`);
+
+  const reader = res.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = '';
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+    const lines = buffer.split('\n');
+    buffer = lines.pop();
+    for (const line of lines) {
+      if (!line.startsWith('data: ')) continue;
+      const data = line.slice(6).trim();
+      if (data === '[DONE]') { onDone?.(); return; }
+      try {
+        const json = JSON.parse(data);
+        if (json.text) onChunk(json.text);
+      } catch {}
+    }
+  }
+  onDone?.();
+}
+
+// --- Markdown 風テキストを簡易HTMLに変換 ---
+function markdownToHtml(text) {
+  return text
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/^#{1,3} (.+)$/gm, '<h4 class="ai-heading">$1</h4>')
+    .replace(/^- (.+)$/gm, '<li>$1</li>')
+    .replace(/(<li>.*<\/li>\n?)+/g, s => `<ul class="ai-list">${s}</ul>`)
+    .replace(/\n\n/g, '</p><p>')
+    .replace(/^(?!<[hul])(.+)$/gm, (m, p) => p ? `<p>${p}</p>` : '')
+    .replace(/<p><\/p>/g, '');
+}
+
+/* ---- STEP3: AI 詳細分析 ---- */
+async function runAiAnalysis() {
+  const btn = document.getElementById('btnAiAnalyze');
+  const output = document.getElementById('aiAnalysisOutput');
+  if (!state.assessmentResult) return showToast('先に診断を完了してください');
+
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 分析中...';
+  output.style.display = 'block';
+  output.innerHTML = '<div class="ai-typing"><span></span><span></span><span></span></div>';
+
+  let fullText = '';
+  try {
+    await streamFromApi('/api/ai/analyze',
+      { assessmentResult: state.assessmentResult, companyInfo: state.companyInfo },
+      (chunk) => {
+        fullText += chunk;
+        output.innerHTML = markdownToHtml(fullText);
+        output.scrollTop = output.scrollHeight;
+      },
+      () => {
+        btn.innerHTML = '<i class="fas fa-redo"></i> 再分析';
+        btn.disabled = false;
+      }
+    );
+  } catch (e) {
+    output.innerHTML = '<p class="ai-error">分析に失敗しました。APIキーを確認してください。</p>';
+    btn.innerHTML = '<i class="fas fa-sparkles"></i> AI詳細分析を開始';
+    btn.disabled = false;
+  }
+}
+
+/* ---- ツールカードの AI 説明ボタン ---- */
+async function showToolDetail(toolId) {
+  const tool = (state.tools || []).find(t => t.id === toolId);
+  if (!tool) return;
+  const modal = document.getElementById('toolDetailModal') || createToolDetailModal();
+  const modalBody = modal.querySelector('.modal-body');
+  modalBody.innerHTML = `
+    <h3>${tool.name}</h3>
+    <p>${tool.description}</p>
+    <div class="ai-stream-output" id="toolDetailOutput">
+      <div class="ai-typing"><span></span><span></span><span></span></div>
+    </div>`;
+  modal.style.display = 'flex';
+
+  let fullText = '';
+  try {
+    await streamFromApi('/api/ai/recommend-detail',
+      { tool, assessmentResult: state.assessmentResult, companyInfo: state.companyInfo },
+      (chunk) => {
+        fullText += chunk;
+        document.getElementById('toolDetailOutput').innerHTML = markdownToHtml(fullText);
+      },
+      () => {}
+    );
+  } catch {
+    document.getElementById('toolDetailOutput').innerHTML = '<p class="ai-error">詳細情報の取得に失敗しました</p>';
+  }
+}
+
+function createToolDetailModal() {
+  const modal = document.createElement('div');
+  modal.id = 'toolDetailModal';
+  modal.className = 'modal-overlay';
+  modal.innerHTML = `
+    <div class="modal-card">
+      <button class="modal-close" onclick="document.getElementById('toolDetailModal').style.display='none'">
+        <i class="fas fa-times"></i>
+      </button>
+      <div class="modal-body"></div>
+    </div>`;
+  document.body.appendChild(modal);
+  modal.addEventListener('click', e => { if (e.target === modal) modal.style.display = 'none'; });
+  return modal;
+}
+
+/* ---- チャット機能 ---- */
+let chatHistory = [];
+let chatOpen = false;
+
+function toggleChat() {
+  chatOpen = !chatOpen;
+  const widget = document.getElementById('chatWidget');
+  const fab = document.getElementById('chatFab');
+  const chevron = document.getElementById('chatChevron');
+  widget.classList.toggle('chat-open', chatOpen);
+  fab.style.display = chatOpen ? 'none' : 'flex';
+  if (chatOpen) {
+    chevron.className = 'fas fa-chevron-down';
+    document.getElementById('chatInput')?.focus();
+  } else {
+    chevron.className = 'fas fa-chevron-up';
+  }
+}
+
+function useSuggestion(text) {
+  document.getElementById('chatInput').value = text;
+  sendChat();
+}
+
+function handleChatKeydown(e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendChat();
+  }
+}
+
+async function sendChat() {
+  const input = document.getElementById('chatInput');
+  const text = input.value.trim();
+  if (!text) return;
+
+  input.value = '';
+  input.disabled = true;
+  document.getElementById('chatSendBtn').disabled = true;
+
+  // サジェストを非表示
+  document.getElementById('chatSuggestions').style.display = 'none';
+
+  // ユーザーメッセージ表示
+  appendChatMessage('user', text);
+  chatHistory.push({ role: 'user', content: text });
+
+  // アシスタント応答領域
+  const msgEl = appendChatMessage('assistant', '');
+  const bubble = msgEl.querySelector('.message-bubble');
+  bubble.innerHTML = '<div class="ai-typing"><span></span><span></span><span></span></div>';
+
+  let fullText = '';
+  try {
+    await streamFromApi('/api/ai/chat',
+      {
+        messages: chatHistory,
+        assessmentResult: state.assessmentResult,
+        companyInfo: state.companyInfo
+      },
+      (chunk) => {
+        fullText += chunk;
+        bubble.innerHTML = markdownToHtml(fullText);
+        document.getElementById('chatMessages').scrollTop = 999999;
+      },
+      () => {
+        chatHistory.push({ role: 'assistant', content: fullText });
+        input.disabled = false;
+        document.getElementById('chatSendBtn').disabled = false;
+        input.focus();
+      }
+    );
+  } catch {
+    bubble.innerHTML = '<span class="ai-error">エラーが発生しました。しばらくしてから再試行してください。</span>';
+    input.disabled = false;
+    document.getElementById('chatSendBtn').disabled = false;
+  }
+}
+
+function appendChatMessage(role, text) {
+  const container = document.getElementById('chatMessages');
+  const div = document.createElement('div');
+  div.className = `chat-message ${role}`;
+  div.innerHTML = `<div class="message-bubble">${text ? markdownToHtml(text) : ''}</div>`;
+  container.appendChild(div);
+  container.scrollTop = container.scrollHeight;
+  return div;
+}
