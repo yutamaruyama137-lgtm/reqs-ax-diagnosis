@@ -268,4 +268,271 @@ AXロードマップの以下フェーズについて、実行計画を詳細化
   return streamResponse(res, stream);
 });
 
+// ---------- POST /api/ai/analyze-transcript ----------
+// ヒアリング書き起こしテキストを受け取り、5軸スコアリング + 4アウトプットをJSON返却
+const TRANSCRIPT_SYSTEM_PROMPT = `あなたはREQS Lab専属のAX（AI Transformation）診断AIです。
+企業のヒアリング書き起こしテキストを分析し、構造化された診断結果をJSONで返します。
+
+## 分析フレームワーク：5軸スコアリング（各1-5点）
+
+1. **AI活用成熟度** (aiMaturity)
+   - 1: AIツールをほぼ使っていない
+   - 2: 個人レベルでChatGPT等を試用
+   - 3: 一部業務でAIツールを本格利用
+   - 4: 複数部門でAI統合・効果測定あり
+   - 5: AI前提の業務設計が完成
+
+2. **業務自動化余地** (automationPotential)
+   - 1: すでに高度に自動化されている
+   - 2: 一部自動化済み、大きな余地なし
+   - 3: 中程度の手作業あり
+   - 4: 多くの繰り返し作業・属人業務あり（自動化余地大）
+   - 5: ほぼ手作業・属人化・紙/FAX多用（自動化余地最大）
+   ※スコアが高いほど「伸びしろ」が大きい
+
+3. **データ整備度** (dataReadiness)
+   - 1: データがバラバラ・活用ほぼゼロ
+   - 2: 一部デジタル化、活用は限定的
+   - 3: 主要データはデジタル化、連携は弱い
+   - 4: データ統合基盤あり、一部AI活用
+   - 5: データ完全一元化・AI学習に活用中
+
+4. **組織推進力** (orgMomentum)
+   - 1: 経営層・現場ともにAI無関心
+   - 2: 一部に関心あり、推進体制なし
+   - 3: 担当者はいるが予算・権限が弱い
+   - 4: 経営層理解あり、推進者も明確
+   - 5: 全社DX推進体制が整備済み
+
+5. **コスト最適化余地** (costOptimization)
+   - 1: IT費用は最適化済み、無駄なし
+   - 2: 若干の無駄あり、改善余地小
+   - 3: 中程度の無駄・外注依存あり
+   - 4: 使っていないツール・高コスト外注多数
+   - 5: IT費用が非常に非効率（自動化で大幅削減可能）
+   ※スコアが高いほど「伸びしろ」が大きい
+
+## AI導入ポテンシャルスコア（0-100）
+総合スコア(5-25)を0-100に正規化 + 緊迫感・リソース準備度ボーナス
+
+## 部署・レイヤー別ギャップ診断
+ヒアリングから登場する部署・役職・担当者の発言を分析し、各部署のAI/IT導入度と課題を特定する。
+- 発言者が「経営層（社長・役員・部長等）」か「現場（担当者・スタッフ等）」かを識別する
+- 各部署名はヒアリングに登場したものを使用（例：営業部、経理部、製造部など）
+- 発言から読み取れる部署ごとのデジタル化レベル・AI活用度・ペインポイントを抽出する
+- 経営層と現場のAI/IT認識ギャップを1-5で評価（1=ギャップなし、5=深刻なギャップ）
+- 登場しない部署は含めない
+
+## 重要な分析姿勢
+- テキストにない情報は「不明」とする（推測で埋めない）
+- 具体的な発言を「evidence」として必ず引用する
+- 工数・コストは発言から数値化（「週3時間×2名=月24時間」など）
+- 曖昧な場合は保守的に（低め）スコアリングする
+
+必ず有効なJSONのみを返し、マークダウンやコードブロックは使わない。`;
+
+// stageを総合スコアから判定するヘルパー
+function determineStage(totalScore) {
+  if (totalScore <= 9)  return { stage: '未着手層', stageDescription: 'AI活用の基礎構築から始めるフェーズです' };
+  if (totalScore <= 14) return { stage: '検討層',   stageDescription: 'ツール選定と小規模PoC開始が有効なフェーズです' };
+  if (totalScore <= 18) return { stage: '試用層',   stageDescription: '業務AX + 定着支援が必要なフェーズです' };
+  if (totalScore <= 22) return { stage: '活用層',   stageDescription: '部門横断展開と効果測定を強化するフェーズです' };
+  return                       { stage: '変革層',   stageDescription: 'AI前提の業務設計・組織変革が可能なフェーズです' };
+}
+
+router.post('/analyze-transcript', async (req, res) => {
+  const { transcript, companyInfo } = req.body;
+
+  // バリデーション
+  if (!transcript || typeof transcript !== 'string') {
+    return res.status(400).json({ error: 'transcriptが必要です' });
+  }
+  if (transcript.trim().length < 200) {
+    return res.status(400).json({ error: 'transcriptが短すぎます（200文字以上必要）' });
+  }
+
+  const company = companyInfo || {};
+  const userMessage = `以下のヒアリング書き起こしを分析し、診断結果を指定のJSON形式で返してください。
+
+## 企業情報
+- 会社名: ${company.name || '未入力'}
+- 業種: ${company.industry || '未入力'}
+- 規模: ${company.size || '未入力'}
+
+## ヒアリング書き起こし
+${transcript}
+
+## 出力するJSONのスキーマ
+{
+  "scores": {
+    "aiMaturity": <1-5の整数>,
+    "automationPotential": <1-5の整数>,
+    "dataReadiness": <1-5の整数>,
+    "orgMomentum": <1-5の整数>,
+    "costOptimization": <1-5の整数>
+  },
+  "aiPotential": <0-100の整数>,
+  "dimensionDetails": {
+    "aiMaturity":          { "score": <1-5>, "evidence": "<発言の引用>", "gap": "<課題の説明>", "mgmtScore": <1-5>, "frontlineScore": <1-5> },
+    "automationPotential": { "score": <1-5>, "evidence": "<発言の引用>", "gap": "<課題の説明>", "mgmtScore": <1-5>, "frontlineScore": <1-5> },
+    "dataReadiness":       { "score": <1-5>, "evidence": "<発言の引用>", "gap": "<課題の説明>", "mgmtScore": <1-5>, "frontlineScore": <1-5> },
+    "orgMomentum":         { "score": <1-5>, "evidence": "<発言の引用>", "gap": "<課題の説明>", "mgmtScore": <1-5>, "frontlineScore": <1-5> },
+    "costOptimization":    { "score": <1-5>, "evidence": "<発言の引用>", "gap": "<課題の説明>", "mgmtScore": <1-5>, "frontlineScore": <1-5> }
+  },
+  "departmentAnalysis": {
+    "departments": [
+      {
+        "name": "<部署名（例：経営層・営業部・経理部など、ヒアリングに登場した部署のみ）>",
+        "aiAdoption": <1-5の整数：AI/ITツール活用度>,
+        "digitalReadiness": <1-5の整数：デジタル化成熟度>,
+        "painPoints": ["<現場の課題1>", "<現場の課題2>"],
+        "currentTools": ["<現在使用中のツール>"],
+        "aiOpportunities": ["<AI/自動化で改善できる業務>"],
+        "evidence": "<この部署に関する発言の引用>"
+      }
+    ],
+    "layerGap": {
+      "managementScore": <1-5：経営層のAI/IT理解度>,
+      "frontlineScore": <1-5：現場のAI/IT活用度>,
+      "gapScore": <1-5：経営層と現場の認識ギャップ（1=ほぼなし、5=深刻）>,
+      "analysis": "<経営層と現場のギャップの詳細分析>",
+      "riskLevel": "<低/中/高>",
+      "bridgingActions": ["<ギャップ解消アクション1>", "<ギャップ解消アクション2>"]
+    }
+  },
+  "keyFindings": ["<発見1>", "<発見2>", "<発見3>"],
+  "outputs": {
+    "itPortfolio": {
+      "current":  ["<現在使用中のツール一覧>"],
+      "keep":     ["<継続利用すべきツール>"],
+      "optimize": ["<改善方法付きツール>"],
+      "retire":   ["<廃止候補ツール>"],
+      "add":      ["<新規導入推奨ツール>"],
+      "summary":  "<IT環境の現状サマリー>"
+    },
+    "processRoadmap": {
+      "phase1": {
+        "title":   "0〜3ヶ月：即効自動化",
+        "actions": ["<アクション1>", "<アクション2>"],
+        "impact":  "<削減時間・コスト効果>",
+        "tools":   ["<ツール1>", "<ツール2>"]
+      },
+      "phase2": {
+        "title":   "3〜6ヶ月：部門横断改革",
+        "actions": ["<アクション1>", "<アクション2>"],
+        "impact":  "<削減時間・コスト効果>",
+        "tools":   ["<ツール1>", "<ツール2>"]
+      },
+      "phase3": {
+        "title":   "6ヶ月〜：データドリブン経営",
+        "actions": ["<アクション1>", "<アクション2>"],
+        "impact":  "<意思決定・事業効果>",
+        "tools":   ["<ツール1>", "<ツール2>"]
+      }
+    },
+    "systemIntegration": {
+      "asIs":        "<現状のシステム連携状況>",
+      "toBe":        "<理想のシステム連携状況>",
+      "connections": [
+        { "from": "<システムA>", "to": "<システムB>", "method": "<連携方法>", "benefit": "<効果>" }
+      ],
+      "priority": "<最優先で取り組む連携>"
+    },
+    "dataStrategy": {
+      "currentState":      "<データ管理の現状>",
+      "collectTarget":     ["<収集すべきデータ1>", "<収集すべきデータ2>"],
+      "integrationPlan":   "<データ統合計画>",
+      "aiUseCases":        ["<AIユースケース1>", "<AIユースケース2>"],
+      "kpis":              ["<KPI1>", "<KPI2>"]
+    }
+  },
+  "roiSimulation": {
+    "currentCost": "<現状の手作業コスト>",
+    "afterCost":   "<AX化後のコスト>",
+    "saving":      "<月次削減額>",
+    "payback":     "<投資回収見込み>"
+  },
+  "nextSteps": [
+    { "priority": 1, "action": "<アクション>", "cost": "<費用目安>" },
+    { "priority": 2, "action": "<アクション>", "cost": "<費用目安>" },
+    { "priority": 3, "action": "<アクション>", "cost": "<費用目安>" }
+  ]
+}`;
+
+  // タイムアウト制御（60秒）
+  const timeoutMs = 60000;
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+  let rawText = '';
+  try {
+    const message = await client.messages.create(
+      {
+        model: MODEL,
+        max_tokens: 6000,
+        system: TRANSCRIPT_SYSTEM_PROMPT,
+        messages: [{ role: 'user', content: userMessage }]
+      },
+      { signal: controller.signal }
+    );
+
+    rawText = message.content?.[0]?.text ?? '';
+  } catch (err) {
+    clearTimeout(timeoutId);
+    if (err.name === 'AbortError' || err.code === 'ERR_CANCELED') {
+      return res.status(504).json({ error: 'Claude APIタイムアウト（30秒超過）' });
+    }
+    console.error('[analyze-transcript] Claude API error:', err);
+    return res.status(502).json({ error: 'Claude APIエラー', detail: err.message });
+  }
+  clearTimeout(timeoutId);
+
+  // JSONパース（コードブロック除去 → パース → フォールバック）
+  let parsed;
+  try {
+    // ```json ... ``` や ``` ... ``` を除去
+    const cleaned = rawText
+      .replace(/^```(?:json)?\s*/i, '')
+      .replace(/\s*```\s*$/, '')
+      .trim();
+    parsed = JSON.parse(cleaned);
+  } catch (_) {
+    // パース失敗時はフォールバックレスポンスを返す
+    console.error('[analyze-transcript] JSON parse failed. raw:', rawText.slice(0, 300));
+    return res.status(200).json({
+      _parseError: true,
+      _rawResponse: rawText,
+      scores: { aiMaturity: 0, automationPotential: 0, dataReadiness: 0, orgMomentum: 0, costOptimization: 0 },
+      totalScore: 0,
+      stage: '分析エラー',
+      stageDescription: 'JSONの解析に失敗しました。書き起こし内容を確認してください。',
+      aiPotential: 0,
+      dimensionDetails: {},
+      keyFindings: [],
+      outputs: {},
+      roiSimulation: {},
+      nextSteps: []
+    });
+  }
+
+  // totalScore と stage をサーバー側で計算・付与
+  const scores = parsed.scores || {};
+  const totalScore = (scores.aiMaturity || 0)
+    + (scores.automationPotential || 0)
+    + (scores.dataReadiness || 0)
+    + (scores.orgMomentum || 0)
+    + (scores.costOptimization || 0);
+  const { stage, stageDescription } = determineStage(totalScore);
+
+  const result = {
+    ...parsed,
+    totalScore,
+    stage,
+    stageDescription
+  };
+
+  return res.status(200).json(result);
+});
+
 module.exports = router;
+

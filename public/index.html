@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>REQS AX診断 — AI Transformation診断システム</title>
+  <title>REQS AX診断 — ヒアリング書き起こし分析</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700;900&display=swap" rel="stylesheet">
@@ -13,717 +13,248 @@
 </head>
 <body>
 
-  <!-- HEADER -->
-  <header class="site-header" role="banner">
-    <div class="header-inner">
-      <div class="header-logo">
-        <div class="logo-mark">
-          <span class="logo-r">R</span>
-        </div>
-        <div class="logo-text">
-          <span class="logo-reqs">REQS</span>
-          <span class="logo-subtitle">AX診断</span>
-        </div>
-      </div>
-      <nav class="header-nav" role="navigation" aria-label="メインナビゲーション">
-        <a href="#landing" class="nav-link" onclick="navigateTo('landing')">ホーム</a>
-        <a href="#about" class="nav-link">診断について</a>
-        <a href="#login" class="nav-link nav-login">ログイン</a>
-      </nav>
-      <button class="header-menu-btn" id="menuToggle" aria-label="メニューを開く">
-        <i class="fas fa-bars"></i>
-      </button>
-    </div>
-  </header>
-
-  <!-- MAIN APP -->
-  <main id="app">
-
-    <!-- ======== STEP 0: LANDING ======== -->
-    <section id="section-landing" class="app-section active" data-step="0">
-      <div class="landing-hero">
-        <div class="landing-content">
-          <div class="landing-badge">
-            <i class="fas fa-robot"></i>
-            AI Transformation
-          </div>
-          <h1 class="landing-title">
-            あなたの企業の<br>
-            <span class="title-highlight">AI成熟度</span>を測定し、<br>
-            最適な<span class="title-highlight">AX戦略</span>を導く
-          </h1>
-          <p class="landing-subtitle">
-            REQS AX診断 — AI Transformation診断システム<br>
-            20問の診断で、あなたの企業のAI活用レベルを可視化します
-          </p>
-          <div class="landing-cta">
-            <button class="btn-primary btn-xl" onclick="startDiagnosis()" aria-label="診断を始める">
-              <i class="fas fa-play-circle"></i>
-              診断を始める
-              <span class="btn-arrow"><i class="fas fa-arrow-right"></i></span>
-            </button>
-            <div class="cta-meta">
-              <span><i class="fas fa-clock"></i> 約5〜10分</span>
-              <span><i class="fas fa-lock"></i> 無料・登録不要</span>
-            </div>
+  <!-- ============================= VIEW 1: INPUT ============================= -->
+  <div id="view-input" class="view active">
+    <header class="app-header">
+      <div class="header-inner">
+        <div class="header-logo">
+          <div class="logo-mark"><span>R</span></div>
+          <div class="logo-text">
+            <span class="logo-reqs">REQS</span>
+            <span class="logo-sub">AX診断</span>
           </div>
         </div>
-
-        <!-- Robot Mascot -->
-        <div class="robot-mascot" aria-hidden="true">
-          <div class="robot-body">
-            <div class="robot-head">
-              <div class="robot-antenna">
-                <div class="antenna-ball"></div>
-                <div class="antenna-stick"></div>
-              </div>
-              <div class="robot-face">
-                <div class="robot-eyes">
-                  <div class="robot-eye left-eye">
-                    <div class="eye-inner"></div>
-                  </div>
-                  <div class="robot-eye right-eye">
-                    <div class="eye-inner"></div>
-                  </div>
-                </div>
-                <div class="robot-mouth">
-                  <div class="mouth-led"></div>
-                  <div class="mouth-led"></div>
-                  <div class="mouth-led"></div>
-                </div>
-              </div>
-              <div class="robot-ear left-ear"></div>
-              <div class="robot-ear right-ear"></div>
-            </div>
-            <div class="robot-torso">
-              <div class="robot-chest">
-                <div class="chest-light"></div>
-                <div class="chest-screen">
-                  <div class="screen-line"></div>
-                  <div class="screen-line short"></div>
-                  <div class="screen-line"></div>
-                </div>
-              </div>
-            </div>
-            <div class="robot-arms">
-              <div class="robot-arm left-arm">
-                <div class="arm-lower"></div>
-                <div class="arm-hand">✊</div>
-              </div>
-              <div class="robot-arm right-arm">
-                <div class="arm-lower"></div>
-                <div class="arm-hand">👍</div>
-              </div>
-            </div>
-            <div class="robot-legs">
-              <div class="robot-leg"></div>
-              <div class="robot-leg"></div>
-            </div>
-          </div>
-          <div class="robot-shadow"></div>
-          <div class="robot-speech">
-            AIの可能性を<br>一緒に探ろう！
-          </div>
-        </div>
-      </div>
-
-      <!-- Step Preview -->
-      <div class="step-preview-section">
-        <h2 class="step-preview-title">診断の流れ</h2>
-        <div class="step-preview-row">
-          <div class="step-preview-item">
-            <div class="step-preview-icon">🏢</div>
-            <div class="step-preview-badge">STEP 01</div>
-            <div class="step-preview-label">企業情報入力</div>
-          </div>
-          <div class="step-preview-connector"></div>
-          <div class="step-preview-item">
-            <div class="step-preview-icon">📋</div>
-            <div class="step-preview-badge">STEP 02</div>
-            <div class="step-preview-label">AI成熟度診断</div>
-          </div>
-          <div class="step-preview-connector"></div>
-          <div class="step-preview-item">
-            <div class="step-preview-icon">📊</div>
-            <div class="step-preview-badge">STEP 03</div>
-            <div class="step-preview-label">診断結果表示</div>
-          </div>
-          <div class="step-preview-connector"></div>
-          <div class="step-preview-item">
-            <div class="step-preview-icon">🛠️</div>
-            <div class="step-preview-badge">STEP 04</div>
-            <div class="step-preview-label">ツールレコメンド</div>
-          </div>
-          <div class="step-preview-connector"></div>
-          <div class="step-preview-item">
-            <div class="step-preview-icon">🗺️</div>
-            <div class="step-preview-badge">STEP 05</div>
-            <div class="step-preview-label">AXロードマップ</div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ======== STEP INDICATOR (Progress Bar) ======== -->
-    <div class="step-indicator-wrapper" id="stepIndicatorWrapper" aria-label="診断進捗" role="navigation">
-      <div class="step-indicator" id="stepIndicator">
-        <div class="step-item" data-step="1" onclick="goToStep(1)" role="button" aria-label="STEP 1: 企業情報">
-          <div class="step-circle" id="step-circle-1">
-            <span class="step-icon">🏢</span>
-            <span class="step-check"><i class="fas fa-check"></i></span>
-            <span class="step-number">1</span>
-          </div>
-          <div class="step-label">
-            <span class="step-badge">STEP 01</span>
-            <span class="step-name">企業情報</span>
-          </div>
-        </div>
-        <div class="step-connector" id="connector-1-2"></div>
-        <div class="step-item" data-step="2" onclick="goToStep(2)" role="button" aria-label="STEP 2: AI成熟度診断">
-          <div class="step-circle" id="step-circle-2">
-            <span class="step-icon">📋</span>
-            <span class="step-check"><i class="fas fa-check"></i></span>
-            <span class="step-number">2</span>
-          </div>
-          <div class="step-label">
-            <span class="step-badge">STEP 02</span>
-            <span class="step-name">AI診断</span>
-          </div>
-        </div>
-        <div class="step-connector" id="connector-2-3"></div>
-        <div class="step-item" data-step="3" onclick="goToStep(3)" role="button" aria-label="STEP 3: 診断結果">
-          <div class="step-circle" id="step-circle-3">
-            <span class="step-icon">📊</span>
-            <span class="step-check"><i class="fas fa-check"></i></span>
-            <span class="step-number">3</span>
-          </div>
-          <div class="step-label">
-            <span class="step-badge">STEP 03</span>
-            <span class="step-name">診断結果</span>
-          </div>
-        </div>
-        <div class="step-connector" id="connector-3-4"></div>
-        <div class="step-item" data-step="4" onclick="goToStep(4)" role="button" aria-label="STEP 4: ツール提案">
-          <div class="step-circle" id="step-circle-4">
-            <span class="step-icon">🛠️</span>
-            <span class="step-check"><i class="fas fa-check"></i></span>
-            <span class="step-number">4</span>
-          </div>
-          <div class="step-label">
-            <span class="step-badge">STEP 04</span>
-            <span class="step-name">ツール提案</span>
-          </div>
-        </div>
-        <div class="step-connector" id="connector-4-5"></div>
-        <div class="step-item" data-step="5" onclick="goToStep(5)" role="button" aria-label="STEP 5: ロードマップ">
-          <div class="step-circle" id="step-circle-5">
-            <span class="step-icon">🗺️</span>
-            <span class="step-check"><i class="fas fa-check"></i></span>
-            <span class="step-number">5</span>
-          </div>
-          <div class="step-label">
-            <span class="step-badge">STEP 05</span>
-            <span class="step-name">ロードマップ</span>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ======== STEP 1: COMPANY INFO ======== -->
-    <section id="section-step1" class="app-section" data-step="1">
-      <div class="section-container">
-        <div class="section-header">
-          <div class="section-icon">🏢</div>
-          <h2 class="section-title">企業情報の入力</h2>
-          <p class="section-desc">あなたの企業に合ったAX戦略を提案するために、基本情報をお教えください</p>
-        </div>
-
-        <form id="companyForm" class="company-form" novalidate>
-          <div class="form-grid">
-            <div class="form-group">
-              <label for="companyName" class="form-label">
-                <i class="fas fa-building"></i> 会社名 <span class="required">*</span>
-              </label>
-              <input type="text" id="companyName" name="companyName" class="form-input"
-                placeholder="例：株式会社REQS" required aria-required="true">
-              <div class="form-error" id="error-companyName"></div>
-            </div>
-
-            <div class="form-group">
-              <label for="industry" class="form-label">
-                <i class="fas fa-industry"></i> 業種 <span class="required">*</span>
-              </label>
-              <select id="industry" name="industry" class="form-select" required aria-required="true">
-                <option value="">業種を選択してください</option>
-                <option value="IT・ソフトウェア">IT・ソフトウェア</option>
-                <option value="製造業">製造業</option>
-                <option value="小売・EC">小売・EC</option>
-                <option value="金融・保険">金融・保険</option>
-                <option value="医療・ヘルスケア">医療・ヘルスケア</option>
-                <option value="建設・不動産">建設・不動産</option>
-                <option value="物流・運輸">物流・運輸</option>
-                <option value="教育">教育</option>
-                <option value="飲食・サービス">飲食・サービス</option>
-                <option value="メディア・広告">メディア・広告</option>
-                <option value="コンサルティング">コンサルティング</option>
-                <option value="その他">その他</option>
-              </select>
-              <div class="form-error" id="error-industry"></div>
-            </div>
-
-            <div class="form-group">
-              <label for="employeeCount" class="form-label">
-                <i class="fas fa-users"></i> 従業員数 <span class="required">*</span>
-              </label>
-              <select id="employeeCount" name="employeeCount" class="form-select" required aria-required="true">
-                <option value="">従業員数を選択してください</option>
-                <option value="1-10">1〜10名（個人・スタートアップ）</option>
-                <option value="11-50">11〜50名（小規模）</option>
-                <option value="51-200">51〜200名（中小企業）</option>
-                <option value="201-1000">201〜1,000名（中堅企業）</option>
-                <option value="1001+">1,001名以上（大企業）</option>
-              </select>
-              <div class="form-error" id="error-employeeCount"></div>
-            </div>
-
-            <div class="form-group">
-              <label for="position" class="form-label">
-                <i class="fas fa-user-tie"></i> あなたの役職
-              </label>
-              <select id="position" name="position" class="form-select">
-                <option value="">役職を選択してください</option>
-                <option value="経営者・代表">経営者・代表</option>
-                <option value="CTO・CIO">CTO・CIO・CDO</option>
-                <option value="部長・マネージャー">部長・マネージャー</option>
-                <option value="IT・DX担当者">IT・DX担当者</option>
-                <option value="一般社員">一般社員</option>
-                <option value="その他">その他</option>
-              </select>
-            </div>
-
-            <div class="form-group form-group-full">
-              <label class="form-label">
-                <i class="fas fa-brain"></i> AIへの期待（複数選択可）
-              </label>
-              <div class="checkbox-grid">
-                <label class="checkbox-item">
-                  <input type="checkbox" name="aiExpectations" value="業務効率化">
-                  <span class="checkbox-custom"></span>
-                  <span>業務効率化</span>
-                </label>
-                <label class="checkbox-item">
-                  <input type="checkbox" name="aiExpectations" value="コスト削減">
-                  <span class="checkbox-custom"></span>
-                  <span>コスト削減</span>
-                </label>
-                <label class="checkbox-item">
-                  <input type="checkbox" name="aiExpectations" value="新規事業創出">
-                  <span class="checkbox-custom"></span>
-                  <span>新規事業創出</span>
-                </label>
-                <label class="checkbox-item">
-                  <input type="checkbox" name="aiExpectations" value="顧客体験向上">
-                  <span class="checkbox-custom"></span>
-                  <span>顧客体験向上</span>
-                </label>
-                <label class="checkbox-item">
-                  <input type="checkbox" name="aiExpectations" value="データ活用">
-                  <span class="checkbox-custom"></span>
-                  <span>データ活用・分析</span>
-                </label>
-                <label class="checkbox-item">
-                  <input type="checkbox" name="aiExpectations" value="人材不足解消">
-                  <span class="checkbox-custom"></span>
-                  <span>人材不足の解消</span>
-                </label>
-              </div>
-            </div>
-
-            <div class="form-group form-group-full">
-              <label for="budget" class="form-label">
-                <i class="fas fa-yen-sign"></i> AI投資の予算感（月額）
-              </label>
-              <div class="radio-group">
-                <label class="radio-item">
-                  <input type="radio" name="budget" value="〜5万円">
-                  <span class="radio-custom"></span>
-                  <span>〜5万円</span>
-                </label>
-                <label class="radio-item">
-                  <input type="radio" name="budget" value="5〜20万円">
-                  <span class="radio-custom"></span>
-                  <span>5〜20万円</span>
-                </label>
-                <label class="radio-item">
-                  <input type="radio" name="budget" value="20〜100万円">
-                  <span class="radio-custom"></span>
-                  <span>20〜100万円</span>
-                </label>
-                <label class="radio-item">
-                  <input type="radio" name="budget" value="100万円以上">
-                  <span class="radio-custom"></span>
-                  <span>100万円以上</span>
-                </label>
-                <label class="radio-item">
-                  <input type="radio" name="budget" value="未定">
-                  <span class="radio-custom"></span>
-                  <span>未定</span>
-                </label>
-              </div>
-            </div>
-          </div>
-
-          <div class="form-actions">
-            <button type="submit" class="btn-primary btn-lg">
-              次のステップへ <i class="fas fa-arrow-right"></i>
-            </button>
-          </div>
-        </form>
-      </div>
-    </section>
-
-    <!-- ======== STEP 2: AI ASSESSMENT ======== -->
-    <section id="section-step2" class="app-section" data-step="2">
-      <div class="section-container">
-        <div class="section-header">
-          <div class="section-icon">📋</div>
-          <h2 class="section-title">AI成熟度診断</h2>
-          <p class="section-desc">各質問に率直にお答えください。正解はありません。</p>
-        </div>
-
-        <!-- Question Progress -->
-        <div class="question-progress-bar">
-          <div class="progress-info">
-            <span id="currentQuestionNum">1</span>/<span id="totalQuestionNum">20</span>問
-          </div>
-          <div class="progress-track">
-            <div class="progress-fill" id="questionProgressFill" style="width:5%"></div>
-          </div>
-        </div>
-
-        <!-- Category Separator -->
-        <div class="category-separator" id="categorySeparator" style="display:none">
-          <div class="category-badge" id="categoryBadge"></div>
-          <h3 id="categoryTitle"></h3>
-        </div>
-
-        <!-- Question Card -->
-        <div class="question-card" id="questionCard">
-          <div class="question-category-tag" id="questionCategoryTag"></div>
-          <div class="question-number" id="questionNumber">Q.1</div>
-          <h3 class="question-text" id="questionText"></h3>
-
-          <!-- Scale Options (1-5) -->
-          <div class="scale-options" id="scaleOptions" style="display:none">
-            <div class="scale-labels">
-              <span>全くない</span>
-              <span>あまりない</span>
-              <span>どちらでも</span>
-              <span>ある程度</span>
-              <span>十分ある</span>
-            </div>
-            <div class="scale-buttons">
-              <button class="scale-btn" data-value="1" aria-label="1: 全くない">1</button>
-              <button class="scale-btn" data-value="2" aria-label="2: あまりない">2</button>
-              <button class="scale-btn" data-value="3" aria-label="3: どちらでも">3</button>
-              <button class="scale-btn" data-value="4" aria-label="4: ある程度">4</button>
-              <button class="scale-btn" data-value="5" aria-label="5: 十分ある">5</button>
-            </div>
-          </div>
-
-          <!-- Choice Options -->
-          <div class="choice-options" id="choiceOptions" style="display:none">
-            <!-- Dynamically generated -->
-          </div>
-
-          <!-- Boolean Options -->
-          <div class="boolean-options" id="booleanOptions" style="display:none">
-            <button class="bool-btn" data-value="yes" aria-label="はい">
-              <i class="fas fa-check"></i> はい
-            </button>
-            <button class="bool-btn" data-value="no" aria-label="いいえ">
-              <i class="fas fa-times"></i> いいえ
-            </button>
-          </div>
-
-          <!-- Text Options -->
-          <div class="text-option" id="textOption" style="display:none">
-            <div class="text-input-row">
-              <textarea id="textAnswer" class="form-textarea" placeholder="こちらにお答えください..." rows="3" aria-label="テキスト回答"></textarea>
-              <button class="voice-btn" id="voiceBtn" title="音声入力" aria-label="音声入力を開始">
-                <i class="fas fa-microphone"></i>
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Question Navigation -->
-        <div class="question-nav">
-          <button class="btn-secondary" id="prevQuestionBtn" onclick="prevQuestion()" disabled aria-label="前の質問">
-            <i class="fas fa-arrow-left"></i> 前の質問
-          </button>
-          <button class="btn-primary" id="nextQuestionBtn" onclick="nextQuestion()" aria-label="次の質問">
-            次の質問 <i class="fas fa-arrow-right"></i>
-          </button>
-          <button class="btn-success btn-lg" id="submitBtn" onclick="submitAssessment()" style="display:none" aria-label="診断を実行">
-            <i class="fas fa-chart-bar"></i> 診断する
+        <div class="header-actions">
+          <button class="btn-load-prev" id="btnLoadPrev" style="display:none" onclick="loadPrevResult()">
+            <i class="fas fa-history"></i> 前回の結果
           </button>
         </div>
       </div>
-    </section>
+    </header>
 
-    <!-- ======== STEP 3: RESULTS ======== -->
-    <section id="section-step3" class="app-section" data-step="3">
-      <div class="section-container">
-        <!-- Loading -->
-        <div class="loading-overlay" id="assessLoading">
-          <div class="loading-robot">
-            <div class="loading-icon">🤖</div>
-            <div class="loading-dots">
-              <span></span><span></span><span></span>
-            </div>
-            <p class="loading-text">AIが診断中...</p>
-            <div class="loading-bar-track">
-              <div class="loading-bar-fill" id="loadingBarFill"></div>
-            </div>
-          </div>
+    <main class="input-main">
+      <!-- Company Info Row -->
+      <div class="company-row">
+        <div class="field-group">
+          <label class="field-label" for="inputCompanyName">会社名</label>
+          <input type="text" id="inputCompanyName" class="field-input" placeholder="例：株式会社REQS">
         </div>
-
-        <div id="resultsContent" style="display:none">
-          <div class="section-header">
-            <div class="section-icon">📊</div>
-            <h2 class="section-title">診断結果</h2>
-            <p class="section-desc" id="resultCompanyName">あなたの企業のAX成熟度スコアです</p>
-          </div>
-
-          <!-- Score Gauge + Radar -->
-          <div class="results-top-grid">
-            <div class="score-gauge-card">
-              <h3 class="card-title">総合AXスコア</h3>
-              <div class="score-gauge-wrapper">
-                <canvas id="scoreGauge" width="240" height="240" aria-label="総合AXスコアのゲージ"></canvas>
-                <div class="score-center">
-                  <div class="score-number" id="scoreNumber">0</div>
-                  <div class="score-unit">/ 100</div>
-                </div>
-              </div>
-              <div class="maturity-badge" id="maturityBadge">
-                <span class="maturity-level" id="maturityLevel">Level 3</span>
-                <span class="maturity-name" id="maturityName">導入期</span>
-              </div>
-            </div>
-
-            <div class="radar-card">
-              <h3 class="card-title">5次元レーダーチャート</h3>
-              <div class="radar-wrapper">
-                <canvas id="radarChart" width="320" height="280" aria-label="5次元レーダーチャート"></canvas>
-              </div>
-            </div>
-          </div>
-
-          <!-- Dimension Scores -->
-          <div class="dimension-scores-card">
-            <h3 class="card-title">次元別スコア</h3>
-            <div class="dimension-grid" id="dimensionGrid">
-              <!-- Populated by JS -->
-            </div>
-          </div>
-
-          <!-- Strengths & Weaknesses -->
-          <div class="strengths-weaknesses-grid">
-            <div class="strengths-card">
-              <h3 class="card-title"><i class="fas fa-star text-success"></i> 強み</h3>
-              <ul class="sw-list" id="strengthsList"></ul>
-            </div>
-            <div class="weaknesses-card">
-              <h3 class="card-title"><i class="fas fa-exclamation-triangle text-warning"></i> 改善ポイント</h3>
-              <ul class="sw-list" id="weaknessesList"></ul>
-            </div>
-          </div>
-
-          <!-- Priority Actions -->
-          <div class="priority-actions-card">
-            <h3 class="card-title"><i class="fas fa-bolt"></i> 優先改善アクション</h3>
-            <div class="priority-actions-list" id="priorityActionsList">
-              <!-- Populated by JS -->
-            </div>
-          </div>
-
-          <!-- Claude AI Analysis -->
-          <div class="ai-analysis-card" id="aiAnalysisCard">
-            <div class="ai-analysis-header">
-              <div class="ai-badge"><i class="fas fa-robot"></i> Claude AI</div>
-              <h3 class="card-title">AIによる詳細分析</h3>
-              <p class="card-desc">診断結果をClaudeが深掘り分析します</p>
-            </div>
-            <button class="btn-ai" id="btnAiAnalyze" onclick="runAiAnalysis()">
-              <i class="fas fa-sparkles"></i> AI詳細分析を開始
-            </button>
-            <div class="ai-stream-output" id="aiAnalysisOutput" style="display:none"></div>
-          </div>
-
-          <div class="section-next-btn">
-            <button class="btn-primary btn-lg" onclick="goToStep(4)" aria-label="おすすめAIツールを見る">
-              おすすめAIツールを見る <i class="fas fa-arrow-right"></i>
-            </button>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ======== STEP 4: TOOLS ======== -->
-    <section id="section-step4" class="app-section" data-step="4">
-      <div class="section-container">
-        <div class="section-header">
-          <div class="section-icon">🛠️</div>
-          <h2 class="section-title">AIツールレコメンド</h2>
-          <p class="section-desc">あなたの企業のAXスコアに基づいて、最適なAIツールを提案します</p>
-        </div>
-
-        <!-- Filters -->
-        <div class="tools-filter-bar">
-          <div class="filter-tabs" id="categoryTabs" role="tablist">
-            <button class="filter-tab active" data-category="all" role="tab" onclick="filterTools('all')">すべて</button>
-            <button class="filter-tab" data-category="文書生成" role="tab" onclick="filterTools('文書生成')">文書生成</button>
-            <button class="filter-tab" data-category="業務自動化" role="tab" onclick="filterTools('業務自動化')">業務自動化</button>
-            <button class="filter-tab" data-category="データ分析" role="tab" onclick="filterTools('データ分析')">データ分析</button>
-            <button class="filter-tab" data-category="コミュニケーション" role="tab" onclick="filterTools('コミュニケーション')">コミュニケーション</button>
-            <button class="filter-tab" data-category="マーケティング" role="tab" onclick="filterTools('マーケティング')">マーケティング</button>
-          </div>
-          <select class="filter-select" id="pricingFilter" onchange="filterTools()" aria-label="価格フィルター">
-            <option value="all">すべての価格帯</option>
-            <option value="free">無料</option>
-            <option value="freemium">フリーミアム</option>
-            <option value="paid">有料</option>
+        <div class="field-group">
+          <label class="field-label" for="inputIndustry">業種</label>
+          <select id="inputIndustry" class="field-input field-select">
+            <option value="">業種を選択</option>
+            <option value="IT・ソフトウェア">IT・ソフトウェア</option>
+            <option value="製造業">製造業</option>
+            <option value="小売・EC">小売・EC</option>
+            <option value="金融・保険">金融・保険</option>
+            <option value="医療・ヘルスケア">医療・ヘルスケア</option>
+            <option value="建設・不動産">建設・不動産</option>
+            <option value="物流・運輸">物流・運輸</option>
+            <option value="教育">教育</option>
+            <option value="飲食・サービス">飲食・サービス</option>
+            <option value="メディア・広告">メディア・広告</option>
+            <option value="コンサルティング">コンサルティング</option>
+            <option value="その他">その他</option>
           </select>
         </div>
+      </div>
 
-        <!-- Phase Tabs -->
-        <div class="phase-tabs">
-          <button class="phase-tab active" data-phase="immediate" onclick="setPhase('immediate')">
-            <i class="fas fa-bolt"></i> 即導入可能
-          </button>
-          <button class="phase-tab" data-phase="short" onclick="setPhase('short')">
-            <i class="fas fa-calendar-alt"></i> 短期（1-3ヶ月）
-          </button>
-          <button class="phase-tab" data-phase="long" onclick="setPhase('long')">
-            <i class="fas fa-map"></i> 長期（3ヶ月以上）
-          </button>
+      <!-- Transcript Area -->
+      <div class="transcript-wrapper">
+        <textarea
+          id="transcriptInput"
+          class="transcript-area"
+          placeholder="ヒアリング書き起こしテキストをここに貼り付けてください&#10;（会議録音・Notta・CLOVA Note 等の出力テキスト）"
+          oninput="updateCharCount()"
+          spellcheck="false"
+        ></textarea>
+        <div class="char-counter" id="charCounter">
+          <span id="charCount">0</span>文字 / 最低200文字必要
         </div>
+      </div>
 
-        <div class="tools-grid" id="toolsGrid">
-          <!-- Populated by JS -->
+      <!-- CTA -->
+      <div class="cta-row">
+        <div class="cta-hint">
+          <i class="fas fa-info-circle"></i>
+          貼り付けて、ボタンを押すだけ。約30秒でAI分析が完了します。
         </div>
+        <button class="btn-analyze" id="btnAnalyze" onclick="startAnalysis()">
+          <i class="fas fa-search"></i>
+          AX診断を開始する
+          <i class="fas fa-arrow-right btn-arrow-icon"></i>
+        </button>
+      </div>
+    </main>
+  </div>
 
-        <div class="section-next-btn">
-          <button class="btn-primary btn-lg" onclick="goToStep(5)" aria-label="AXロードマップを見る">
-            AXロードマップを見る <i class="fas fa-arrow-right"></i>
+  <!-- ============================= VIEW 2: ANALYZING ============================= -->
+  <div id="view-analyzing" class="view">
+    <div class="analyzing-view">
+      <!-- Robot Animation -->
+      <div class="analyzing-robot" aria-hidden="true">
+        <div class="robot-head">
+          <div class="robot-antenna">
+            <div class="antenna-ball"></div>
+            <div class="antenna-stick"></div>
+          </div>
+          <div class="robot-face">
+            <div class="robot-eyes">
+              <div class="robot-eye"><div class="eye-inner"></div></div>
+              <div class="robot-eye"><div class="eye-inner"></div></div>
+            </div>
+            <div class="robot-mouth">
+              <div class="mouth-led"></div>
+              <div class="mouth-led"></div>
+              <div class="mouth-led"></div>
+            </div>
+          </div>
+        </div>
+        <div class="robot-torso">
+          <div class="chest-light"></div>
+        </div>
+      </div>
+
+      <div class="analyzing-text">Claudeがヒアリング内容を分析中...</div>
+
+      <!-- Progress Bar -->
+      <div class="analyzing-progress-wrap">
+        <div class="analyzing-progress-bar">
+          <div class="analyzing-progress-fill" id="analyzingFill"></div>
+        </div>
+        <div class="analyzing-pct" id="analyzingPct">0%</div>
+      </div>
+
+      <!-- Steps -->
+      <div class="step-list" id="stepList">
+        <div class="step-item" id="step-0">
+          <div class="step-icon-wrap"><i class="fas fa-circle-notch fa-spin"></i></div>
+          <span>業務プロセスを分析</span>
+        </div>
+        <div class="step-item" id="step-1">
+          <div class="step-icon-wrap"><i class="fas fa-circle"></i></div>
+          <span>AIツール活用状況を評価</span>
+        </div>
+        <div class="step-item" id="step-2">
+          <div class="step-icon-wrap"><i class="fas fa-circle"></i></div>
+          <span>コスト最適化余地を算出</span>
+        </div>
+        <div class="step-item" id="step-3">
+          <div class="step-icon-wrap"><i class="fas fa-circle"></i></div>
+          <span>4つのアウトプットを生成</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================= VIEW 3: RESULTS ============================= -->
+  <div id="view-results" class="view">
+    <!-- Header -->
+    <header class="app-header results-header">
+      <div class="header-inner">
+        <div class="header-logo">
+          <div class="logo-mark"><span>R</span></div>
+          <div class="logo-text">
+            <span class="logo-reqs">REQS</span>
+            <span class="logo-sub">AX診断</span>
+          </div>
+        </div>
+        <div class="header-actions">
+          <button class="btn-secondary-sm" onclick="showView('input')">
+            <i class="fas fa-plus"></i> 新規診断
           </button>
         </div>
       </div>
-    </section>
+    </header>
 
-    <!-- ======== STEP 5: ROADMAP ======== -->
-    <section id="section-step5" class="app-section" data-step="5">
-      <div class="section-container" id="roadmapContent">
-        <div class="section-header">
-          <div class="section-icon">🗺️</div>
-          <h2 class="section-title">AXロードマップ</h2>
-          <p class="section-desc" id="roadmapCompanyName">貴社専用のAI Transformationロードマップ</p>
+    <div class="results-layout">
+      <!-- LEFT: Score Panel -->
+      <aside class="results-left">
+        <div class="results-company-name" id="resultsCompanyName"></div>
+
+        <!-- AI Potential Score -->
+        <div class="score-section">
+          <div class="score-label">AIポテンシャルスコア</div>
+          <div class="score-big" id="scoreBig">0</div>
+          <div class="score-unit">/100</div>
+          <div class="score-bar-track">
+            <div class="score-bar-fill" id="scoreBarFill" style="width:0%"></div>
+          </div>
         </div>
 
-        <div class="roadmap-actions">
-          <button class="btn-outline" onclick="window.print()" aria-label="PDFで印刷">
-            <i class="fas fa-print"></i> PDF印刷
+        <!-- Radar Chart -->
+        <div class="radar-section">
+          <div class="radar-label">5軸評価</div>
+          <div class="radar-wrap">
+            <canvas id="radarChart" width="240" height="220"></canvas>
+          </div>
+        </div>
+
+        <!-- Stage Badge -->
+        <div class="stage-section">
+          <div class="stage-badge-label">現在のステージ</div>
+          <div class="stage-badge" id="stageBadge">-</div>
+          <p class="stage-desc" id="stageDesc"></p>
+        </div>
+
+        <!-- ROI -->
+        <div class="roi-section" id="roiSection" style="display:none">
+          <div class="roi-item">
+            <i class="fas fa-yen-sign"></i>
+            <span id="roiSaving"></span>
+          </div>
+          <div class="roi-item">
+            <i class="fas fa-clock"></i>
+            <span id="roiPayback"></span>
+          </div>
+        </div>
+
+        <!-- Key Findings -->
+        <div class="findings-section">
+          <div class="findings-label">主要発見</div>
+          <ul class="findings-list" id="findingsList"></ul>
+        </div>
+
+        <!-- Actions -->
+        <div class="left-actions">
+          <button class="btn-pdf" onclick="saveReport()">
+            <i class="fas fa-file-pdf"></i> PDFで保存
           </button>
+          <a class="btn-consult" href="https://reqs.co.jp" target="_blank" rel="noopener">
+            <i class="fas fa-comments"></i> REQSに相談
+          </a>
+        </div>
+      </aside>
+
+      <!-- RIGHT: Tabs + Content -->
+      <div class="results-right">
+        <!-- Tabs -->
+        <div class="tabs" role="tablist">
+          <button class="tab active" data-tab="it" onclick="switchTab('it')" role="tab">ITポートフォリオ</button>
+          <button class="tab" data-tab="process" onclick="switchTab('process')" role="tab">業務ロードマップ</button>
+          <button class="tab" data-tab="integration" onclick="switchTab('integration')" role="tab">システム統合</button>
+          <button class="tab" data-tab="data" onclick="switchTab('data')" role="tab">データ戦略</button>
+          <button class="tab" data-tab="gap" onclick="switchTab('gap')" role="tab">ギャップ診断</button>
         </div>
 
-        <!-- Timeline -->
-        <div class="roadmap-timeline" id="roadmapTimeline">
-          <!-- Populated by JS -->
+        <!-- Tab Content -->
+        <div class="tab-content" id="tabContent">
+          <!-- populated by JS -->
         </div>
 
-        <!-- Strategy Sections -->
-        <div class="strategy-sections">
-          <h3 class="strategy-title">3つの戦略セクション</h3>
-          <div class="strategy-grid">
-            <div class="strategy-card">
-              <div class="strategy-icon">💼</div>
-              <h4>ITポートフォリオ最適化</h4>
-              <p>現行ITシステムの棚卸しと、AI活用の観点から最適な構成へ移行します。既存ツールとAI機能の統合を段階的に推進します。</p>
-              <ul class="strategy-list" id="strategyIT">
-                <li>現行システムのAI対応評価</li>
-                <li>クラウド移行・API化の推進</li>
-                <li>AI基盤インフラの整備</li>
-              </ul>
-            </div>
-            <div class="strategy-card">
-              <div class="strategy-icon">⚙️</div>
-              <h4>業務プロセス最適化</h4>
-              <p>AIにより自動化・効率化できる業務プロセスを特定し、段階的に移行します。人とAIの最適な役割分担を設計します。</p>
-              <ul class="strategy-list" id="strategyProcess">
-                <li>業務フローのAI適用可否評価</li>
-                <li>繰り返し作業の自動化</li>
-                <li>意思決定支援AIの導入</li>
-              </ul>
-            </div>
-            <div class="strategy-card">
-              <div class="strategy-icon">🔗</div>
-              <h4>システム統合・データ利活用</h4>
-              <p>散在するデータを統合し、AIが活用できる形に整備します。データドリブンな意思決定文化を醸成します。</p>
-              <ul class="strategy-list" id="strategyData">
-                <li>データ統合基盤の構築</li>
-                <li>AI分析ダッシュボードの整備</li>
-                <li>予測・レコメンドAIの活用</li>
-              </ul>
-            </div>
-          </div>
-        </div>
-
-        <!-- REQS Services CTA -->
-        <div class="reqs-services-card">
-          <div class="reqs-services-header">
-            <div class="reqs-logo-sm">
-              <span>R</span>
-            </div>
-            <div>
-              <h3>REQS社のAXソリューション</h3>
-              <p>診断結果に基づいた専門的なサポートを提供します</p>
-            </div>
-          </div>
-          <div class="reqs-services-grid">
-            <div class="reqs-service-item">
-              <i class="fas fa-robot"></i>
-              <h4>業務AXソリューション</h4>
-              <p>AIエージェントによる業務自動化・効率化の設計から実装まで</p>
-            </div>
-            <div class="reqs-service-item">
-              <i class="fas fa-code"></i>
-              <h4>Webアプリ開発</h4>
-              <p>AI機能を組み込んだWebアプリケーションのフルスクラッチ開発</p>
-            </div>
-            <div class="reqs-service-item">
-              <i class="fas fa-database"></i>
-              <h4>DB統合・データ利活用</h4>
-              <p>既存システムのデータ統合とAI活用のためのデータ基盤構築</p>
-            </div>
-          </div>
-          <div class="reqs-cta">
-            <a href="https://reqs.co.jp" target="_blank" rel="noopener noreferrer" class="btn-primary btn-lg">
-              <i class="fas fa-comments"></i> REQSに相談する
-            </a>
-            <p class="cta-note">初回相談無料 · オンライン対応可</p>
-          </div>
+        <!-- Next Steps -->
+        <div class="next-steps-section" id="nextStepsSection" style="display:none">
+          <h3 class="next-steps-title">次のアクション（優先順）</h3>
+          <div class="next-steps-list" id="nextStepsList"></div>
         </div>
       </div>
-    </section>
+    </div>
+  </div>
 
-  </main>
-
-  <!-- Toast Notification -->
+  <!-- Toast -->
   <div class="toast" id="toast" role="alert" aria-live="polite"></div>
 
-  <!-- ======== AI CHAT WIDGET ======== -->
+  <!-- ============================= CHAT WIDGET ============================= -->
   <div class="chat-widget" id="chatWidget" aria-label="AIチャット">
     <div class="chat-header" onclick="toggleChat()">
       <div class="chat-header-left">
@@ -733,7 +264,7 @@
           <div class="chat-subtitle">Powered by Claude</div>
         </div>
       </div>
-      <button class="chat-toggle-btn" id="chatToggleBtn" aria-label="チャットを開閉">
+      <button class="chat-toggle-btn" aria-label="チャットを開閉">
         <i class="fas fa-chevron-up" id="chatChevron"></i>
       </button>
     </div>
@@ -741,16 +272,21 @@
       <div class="chat-messages" id="chatMessages">
         <div class="chat-message assistant">
           <div class="message-bubble">
-            こんにちは！AX（AI Transformation）に関するご質問はなんでもどうぞ。<br>
-            診断結果についての質問や、具体的な導入方法なども承ります 🤖
+            こんにちは！AX診断に関するご質問はなんでもどうぞ。<br>
+            診断結果の解説や具体的な導入方法もお答えします。
           </div>
         </div>
+      </div>
+      <div class="chat-suggestions" id="chatSuggestions">
+        <button class="chat-suggestion" onclick="useSuggestion('最優先で取り組むべきAI施策を教えてください')">優先施策は？</button>
+        <button class="chat-suggestion" onclick="useSuggestion('Make.comで業務自動化を始めるには何から着手すべきですか？')">自動化の始め方</button>
+        <button class="chat-suggestion" onclick="useSuggestion('REQSのサービスで何をサポートしてもらえますか？')">REQSのサービスは？</button>
       </div>
       <div class="chat-input-area">
         <textarea
           id="chatInput"
           class="chat-input"
-          placeholder="質問を入力してください..."
+          placeholder="質問を入力..."
           rows="2"
           aria-label="チャット入力"
           onkeydown="handleChatKeydown(event)"
@@ -759,17 +295,11 @@
           <i class="fas fa-paper-plane"></i>
         </button>
       </div>
-      <div class="chat-suggestions" id="chatSuggestions">
-        <button class="chat-suggestion" onclick="useSuggestion('AXスコアを上げるための最優先アクションを教えてください')">優先アクションは？</button>
-        <button class="chat-suggestion" onclick="useSuggestion('ChatGPTを業務に導入する具体的な手順を教えてください')">ChatGPT導入方法</button>
-        <button class="chat-suggestion" onclick="useSuggestion('AIツール導入の予算感を教えてください')">予算感は？</button>
-        <button class="chat-suggestion" onclick="useSuggestion('REQSのサービスで何をサポートしてもらえますか？')">REQSのサービスは？</button>
-      </div>
     </div>
   </div>
   <button class="chat-fab" id="chatFab" onclick="toggleChat()" aria-label="AIチャットを開く">
     <i class="fas fa-robot"></i>
-    <span class="chat-fab-badge" id="chatFabBadge">AI</span>
+    <span class="chat-fab-badge">AI</span>
   </button>
 
   <script src="app.js"></script>
